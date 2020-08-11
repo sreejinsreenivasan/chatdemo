@@ -11,11 +11,26 @@ const createChat = (payload, triggerFunction) => {
     type,
     {
       key: Math.random(),
-      onClick: () => triggerFunction(getItem(chatTree, trigger)),
+      id: Math.random(),
+      onClick: () =>
+        trigger !== false ? triggerFunction(getItem(chatTree, trigger)) : null,
       className:
-        "font-semibold inline-block py-1 px-2 rounded-full text-white bg-indigo-400 last:mr-0 mr-1"
+        type === "ul"
+          ? "my-2 p-1"
+          : "font-semibold inline-block py-1 px-2 rounded-full text-white bg-indigo-400 last:mr-0 mr-1"
     },
-    content
+    type === "ul"
+      ? payload.elements.map((e) =>
+          React.createElement(
+            "li",
+            {
+              className:
+                "font-semibold inline-block py-1 px-2 rounded-full text-white bg-indigo-400 last:mr-0 mr-1"
+            },
+            e.name
+          )
+        )
+      : content
   );
   return newElement;
 };
@@ -24,22 +39,29 @@ const getItem = (array, id) => array.find((e) => e.id === id);
 
 export default function ChatList() {
   const [chat, setChat] = useState([]);
-  console.log(chat);
 
   const addNewChat = (response) => {
-    const newArray = [...chat];
-    newArray.splice(newArray.length + 1, 0, createChat(response, addNewChat));
-    setChat(newArray);
+    const element = createChat(response, addNewChat);
+    setChat((chat) => [...chat, element]);
   };
 
   React.useEffect(() => {
     console.log("mounted");
 
-    setChat([...chat, createChat(initializeChat(chatTree), addNewChat)]);
+    setChat((chat) => [
+      ...chat,
+      createChat(initializeChat(chatTree), addNewChat)
+    ]);
+    return () => {
+      console.log("un d");
+    };
   }, []);
 
   return (
-    <div className="h-full bg-indigo-100 px-2 py-6" style={{ minHeight: 370 }}>
+    <div
+      className="h-full bg-indigo-100 px-2 py-6 overflow-auto"
+      style={{ height: 370 }}
+    >
       {chat.map((e) => (
         <div key={e.key} className="my-3">
           {e}
